@@ -12,7 +12,7 @@ const CompanySchema = new Schema({
   parent: { type: Schema.Types.ObjectId, ref: "Company"},
   geolocation: { type: [Schema.Types.ObjectId], ref: "Geolocation"},
   name: { type: String, required: true },
-  code: { type: String, required: true, min:4, max:4},
+  code: { type: String, required: true, min:4, max:4, unique:true},
   status: {
     type: String,
     required: true,
@@ -31,25 +31,6 @@ CompanySchema.pre('save', function(next) {
         const paddedCode = "0000" + this.code;
         this.code = paddedCode.slice(paddedCode.length-4);
         next()
-    }
-  });
-
-
-// Validate company code is unique
-CompanySchema.pre('save', async function (next) {
-    try {
-      const Company = mongoose.model('Company');
-      const existingCompany = await Company.findOne({ code: this.code });
-  
-      if (existingCompany) {
-        const errMsg = `Company code ${this.code} is already in use`;
-        this.invalidate('code', errMsg);
-        throw new Error(errMsg);
-      }
-  
-      next();
-    } catch (err) {
-      next(err);
     }
   });
 
