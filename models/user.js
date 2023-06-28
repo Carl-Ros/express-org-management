@@ -5,8 +5,9 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
   givenName: { type: String, required: true, maxLength: 100 },
   surname: { type: String, required: true, maxLength: 100 },
-  email: { type: String},
-  m365License: { type: String}
+  email: { type: String, unique: true},
+  m365License: { type: String},
+  department: {type: Schema.Types.ObjectId, ref: "Department"}
 });
 
 UserSchema.virtual("fullName").get(function () {
@@ -16,20 +17,9 @@ UserSchema.virtual("fullName").get(function () {
   return "";
 });
 
-// Ensure email is unique before storing
-UserSchema.pre('save', function(next) {
-  UserSchema.findOne({ email: this.email }, function(err, result) {
-    if (err) {
-      next(err);
-    } else if (result) {
-      this.invalidate('email', 'Email must be unique');
-      next(new Error('Email must be unique'));
-    } else {
-      next();
-    }
-  });
+UserSchema.virtual("company").get(function () {
+  return this.department ? this.department.company : "";
 });
-
 
 UserSchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object
