@@ -35,18 +35,21 @@ CompanySchema.pre('save', function(next) {
   });
 
 // Validate company parent
-CompanySchema.pre('save', function(next) {
+CompanySchema.pre('save', async function(next) {
     // ensure numeric string
     const errors = [];
     if(this.parent){
-        if(this.parent === this.id) {
+        if(this.parent.toString() === this.id.toString()) {
             errors.push(`Company cannot reference itself as parent.`);
         }
-        if(this.parent.status === Status.DECOMISSIONED) {
-            errors.push(`Company parent must not be decomissioned.`);
+        const Company = mongoose.model('Company');
+        const parentCompany = await Company.findOne({ _id: this.parent });
+
+        if (parentCompany.status === Status.DECOMISSIONED) {
+          errors.push(`Company parent must not be decomissioned.`);
         }
     }   
-
+    
     if(errors.length > 0){
         const errMsg = errors.join("\n");
         this.invalidate('parent', errMsg);
@@ -80,6 +83,9 @@ CompanySchema.virtual("geolocations", {
     foreignField: "company",
 });
 
-
+const Company = mongoose.model("Company", CompanySchema);
 // Export model
-module.exports = mongoose.model("Company", CompanySchema);
+module.exports = {
+    Company,
+    Status
+}

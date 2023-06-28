@@ -1,14 +1,12 @@
 const mongoose = require("mongoose");
-const Company = require("../../models/company");
+const {Company, Status} = require("../../models/company");
 const assert = require("assert");
 const {describe, it, afterEach} = require("node:test");
 const db = require("../../db.js")
 
 
-// TODO: 
-// fail create with parent to itself
-// fail create with decomissioned parent 
-// department & gelocation - later
+// TODO:
+// department & geolocation - later
 describe("Company", () => {
     let cleanupEntries = [];
   
@@ -122,6 +120,53 @@ describe("Company", () => {
             assert.ok(err);
           }
       });
+
+      it("should not save company with a parent reference to itself", async () => {
+        const companyData = {
+          name: "Test Company",
+          code: "0001",
+        };
+    
+        const newCompany = new Company(companyData);
+        const savedCompany = await newCompany.save();
+        cleanupEntries.push(savedCompany._id);
+
+        try {
+            savedCompany.parent = savedCompany._id;
+            await savedCompany.save();
+            assert.fail('Error should be thrown due to parent reference to iself');
+          } catch (err) {
+            assert.ok(err);
+          }
+      });      
+
+      it("should not save company with a decomissioned parent", async () => {
+        const companyParentData = {
+          name: "Test Company",
+          code: "0001",
+          status: Status.DECOMISSIONED
+        };
+    
+        const newParentCompany = new Company(companyParentData);
+        const savedParentCompany = await newParentCompany.save();
+        cleanupEntries.push(savedParentCompany._id);
+
+
+        const companyData = {
+          name: "Test Company",
+          code: "0002",
+          parent: savedParentCompany._id
+        };
+    
+        try {
+            const newCompany = new Company(companyData);
+            const savedCompany = await newCompany.save();
+            cleanupEntries.push(savedCompany._id);
+            assert.fail('Error should be thrown due to decomissioned parent');
+          } catch (err) {
+            assert.ok(err);
+          }
+      }); 
 
       it("should not create a new company with a duplicate code", async () => {
         const companyData = {
