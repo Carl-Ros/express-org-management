@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
-
+const {Status: departmentStatus} = require('./department.js')
 const Schema = mongoose.Schema;
 
 const Status = {
     ACTIVE: 'active',
     DECOMISSIONED: 'decomissioned',
     ONBOARDING: 'onboarding'
-  };
+};
 
 const CompanySchema = new Schema({
   parent: { type: Schema.Types.ObjectId, ref: "Company"},
@@ -36,7 +36,6 @@ CompanySchema.pre('save', function(next) {
 
 // Validate company parent
 CompanySchema.pre('save', async function(next) {
-    // ensure numeric string
     const errors = [];
     if(this.parent){
         if(this.parent.toString() === this.id.toString()) {
@@ -58,6 +57,20 @@ CompanySchema.pre('save', async function(next) {
 
     next()
   });
+
+// Close associated departments on company decomission
+CompanySchema.pre('save', async function(next) {
+  company = await this.populate('departments')
+  for(department of company.departments){
+    // TODO: Fix circular dependecy to be able to use department models enum Status instead
+    department.status = "closed";
+    await department.save();
+    // set department to closed and remove company association
+  }
+  next();
+
+});
+
 
 // Virtual for Company's URL
 CompanySchema.virtual("url").get(function () {
