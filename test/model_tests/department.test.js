@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const { Department, Status: DepartmentStatus } = require("../../models/department");
 const { Company, Status: CompanyStatus } = require("../../models/company");
+const { Department, Status: DepartmentStatus } = require("../../models/department");
 
 const assert = require("assert");
 const { describe, it, afterEach } = require("node:test");
@@ -16,6 +16,16 @@ async function createCompany({ name = "Test Company", code = "0001", status = Co
   return newCompany.save();
 }
 
+const cleanupEntries = [];
+
+function addToCleanup(model, objectId) {
+  cleanupEntries.push({model, objectId})
+}
+
+function clearCleanup(){
+  cleanupEntries.splice(0, cleanupEntries.length)
+}
+
 // TODO:
 // geolocation, user 
 // should return cities from 2 geolocations
@@ -23,24 +33,16 @@ async function createCompany({ name = "Test Company", code = "0001", status = Co
 // department.status -> closed should remove department from all associated users
 
 describe("Department", () => {
-  let cleanupDepartments = [];
-  let cleanupCompanies = [];
 
   afterEach(async () => {
     // Clean up the test objects
-    await Promise.all([
-      ...cleanupDepartments.map(id => Department.findByIdAndDelete(id)),
-      ...cleanupCompanies.map(id => Company.findByIdAndDelete(id))
-    ]);
-
-    cleanupDepartments = [];
-    cleanupCompanies = [];
+    await Promise.all(cleanupEntries.map(({model, objectId}) => model.findByIdAndDelete(objectId)));
+    clearCleanup();
   });
 
   it("Should create a new department with mandatory properties", async () => {
     const newCompany = await createCompany();
-    console.log(newCompany);
-    cleanupCompanies.push(newCompany._id);
+    addToCleanup(Company, newCompany._id);
 
     const departmentData = {
       name: "Test Department",
@@ -51,26 +53,25 @@ describe("Department", () => {
     savedDepartment = await newDepartment.save();
     assert.strictEqual(savedDepartment.name, departmentData.name);
     assert.strictEqual(savedDepartment.company.toString(), newCompany._id.toString());
-    cleanupDepartments.push(savedDepartment._id);
+    addToCleanup(Department, savedDepartment._id);
   });
 
-  it("should not be able to add with decomissioned company", async () => {
-    const newCompany = await createCompany({ status: CompanyStatus.DECOMISSIONED });
-    cleanupCompanies.push(newCompany._id);
+ it("should not be able to add with decomissioned company", async () => {
+   const newCompany = await createCompany({ status: CompanyStatus.DECOMISSIONED });
+   addToCleanup(Company, newCompany._id);
+   const departmentData = {
+     name: "Test Department",
+     company: newCompany._id,
+   };
 
-    const departmentData = {
-      name: "Test Department",
-      company: newCompany._id,
-    };
-
-    const newDepartment = new Department(departmentData);
-    try {
-      savedDepartment = await newDepartment.save();
-      cleanupDepartments.push(savedDepartment._id);
-      assert.fail('Error should be thrown due to decomissioned company ref on creation');
-    } catch (err) {
-      assert.ok(err);
-    }
+   const newDepartment = new Department(departmentData);
+   try {
+     savedDepartment = await newDepartment.save();
+     addToCleanup(Department, savedDepartment._id);
+     assert.fail('Error should be thrown due to decomissioned company ref on creation');
+   } catch (err) {
+     assert.ok(err);
+   }
   });
 
 
