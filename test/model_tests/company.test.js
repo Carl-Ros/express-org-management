@@ -1,19 +1,30 @@
 const mongoose = require("mongoose");
-const {Company, Status} = require("../../models/company");
+const {Department, Status: DepartmentStatus} = require("../../models/department");
+const {Company, Status: CompanyStatus} = require("../../models/company");
+
 const assert = require("assert");
 const {describe, it, afterEach} = require("node:test");
 const db = require("../../db.js")
 
+const cleanupEntries = [];
+
+function addToCleanup(model, objectId) {
+  cleanupEntries.push({model, objectId})
+}
+
+function clearCleanup(){
+  cleanupEntries.splice(0, cleanupEntries.length)
+}
 
 // TODO:
 // department & geolocation - later
+// company.status -> decomission.status -> close, on all associated departments
 describe("Company", () => {
-    let cleanupEntries = [];
-  
+
     afterEach(async () => {
       // Clean up the test objects
-      await Promise.all(cleanupEntries.map(id => Company.findByIdAndDelete(id)));
-      cleanupEntries = [];
+      await Promise.all(cleanupEntries.map(({model, objectId}) => model.findByIdAndDelete(objectId)));
+      clearCleanup();
     });
   
     it("should create a new company with valid code", async () => {
@@ -27,7 +38,7 @@ describe("Company", () => {
   
       assert.strictEqual(savedCompany.name, companyData.name);
       assert.strictEqual(savedCompany.code, companyData.code);
-      cleanupEntries.push(savedCompany._id);
+      addToCleanup(Company,savedCompany._id);
     });
 
     it("should create a new company with paddable code", async () => {
@@ -41,7 +52,7 @@ describe("Company", () => {
     
         assert.strictEqual(savedCompany.name, companyData.name);
         assert.strictEqual(savedCompany.code, '0001');
-        cleanupEntries.push(savedCompany._id);
+        addToCleanup(Company,savedCompany._id);
       });    
 
       it("should create a new company with a valid parent", async () => {
@@ -52,7 +63,7 @@ describe("Company", () => {
     
         const newParentCompany = new Company(companyParentData);
         const savedParentCompany = await newParentCompany.save();
-        cleanupEntries.push(savedParentCompany._id);
+        addToCleanup(Company,savedParentCompany._id);
     
         const companyData = {
           name: "Test Company",
@@ -65,7 +76,7 @@ describe("Company", () => {
 
 
         assert.strictEqual(savedCompany.parent, savedParentCompany._id);
-        cleanupEntries.push(savedCompany._id);
+        addToCleanup(Company,savedCompany._id);
       });
       
     it("should have accessible virtual children as a valid parent", async () => {
@@ -76,7 +87,7 @@ describe("Company", () => {
   
       const newParentCompany = new Company(companyParentData);
       const savedParentCompany = await newParentCompany.save();
-      cleanupEntries.push(savedParentCompany._id);
+      addToCleanup(Company,savedParentCompany._id);
   
       const companyData = {
         name: "Test Company",
@@ -86,7 +97,7 @@ describe("Company", () => {
   
       const newCompany = new Company(companyData);
       const savedCompany = await newCompany.save();
-      cleanupEntries.push(savedCompany._id);
+      addToCleanup(Company,savedCompany._id);
       
       const companyData2 = {
         name: "Test Company",
@@ -96,7 +107,7 @@ describe("Company", () => {
   
       const newCompany2 = new Company(companyData2);
       const savedCompany2 = await newCompany2.save();
-      cleanupEntries.push(savedCompany2._id);
+      addToCleanup(Company,savedCompany2._id);
 
       companyWithChildren = await Company.findById(savedParentCompany._id).populate('children')
 
@@ -129,7 +140,7 @@ describe("Company", () => {
     
         const newCompany = new Company(companyData);
         const savedCompany = await newCompany.save();
-        cleanupEntries.push(savedCompany._id);
+        addToCleanup(Company,savedCompany._id);
 
         try {
             savedCompany.parent = savedCompany._id;
@@ -144,12 +155,12 @@ describe("Company", () => {
         const companyParentData = {
           name: "Test Company",
           code: "0001",
-          status: Status.DECOMISSIONED
+          status: CompanyStatus.DECOMISSIONED
         };
     
         const newParentCompany = new Company(companyParentData);
         const savedParentCompany = await newParentCompany.save();
-        cleanupEntries.push(savedParentCompany._id);
+        addToCleanup(Company,savedParentCompany._id);
 
 
         const companyData = {
@@ -161,7 +172,7 @@ describe("Company", () => {
         try {
             const newCompany = new Company(companyData);
             const savedCompany = await newCompany.save();
-            cleanupEntries.push(savedCompany._id);
+            addToCleanup(Company,savedCompany._id);
             assert.fail('Error should be thrown due to decomissioned parent');
           } catch (err) {
             assert.ok(err);
@@ -175,13 +186,44 @@ describe("Company", () => {
         };
         const newCompany = new Company(companyData);
         const savedCompany = await newCompany.save();
-        cleanupEntries.push(savedCompany._id);
+        addToCleanup(Company,savedCompany._id);
 
         try {
-            const savedCompany = await newCompany.save();
+            newCompany2 = new Company(companyData)
+            savedCompany2 = await newCompany2.save();
+            addToCleanup(Company,savedCompany2._id);
             assert.fail('Error should be thrown due to duplicate code');
           } catch (err) {
             assert.ok(err);
           }
       });
+
+     it("should close associated department on decomission", async () => {
+      const companyData = {
+        name: "Test Company",
+        code: "0001",
+      };
+
+      const newCompany = new Company(companyData);
+      const savedCompany = await newCompany.save();
+      addToCleanup(Company, savedCompany._id);
+
+      const departmentData = {
+        name: "Test Department",
+        company: newCompany._id,
+      };
+  
+      const newDepartment = new Department(departmentData);
+      savedDepartment = await newDepartment.save();
+      addToCleanup(Department, savedDepartment._id);
+
+      assert.strictEqual(savedDepartment.status, DepartmentStatus.ACTIVE);
+      assert.strictEqual(savedDepartment.company.toString(), savedCompany._id.toString());
+
+      savedCompany.status = CompanyStatus.DECOMISSIONED;
+      await savedCompany.save();
+
+      const updatedDepartment = await Department.findById(savedDepartment._id)
+      assert.strictEqual(updatedDepartment.status, DepartmentStatus.CLOSED);
+     });
   });
