@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const {Department, Status: DepartmentStatus} = require("./department")
 
 const UserSchema = new Schema({
   givenName: { type: String, required: true, maxLength: 100 },
@@ -14,6 +15,15 @@ UserSchema.virtual("fullName").get(function () {
     return `${this.givenName} ${this.surname}`;
   }
   return "";
+});
+
+// Validate department ref
+UserSchema.pre('save', async function(next) {
+  const department = await Department.findOne({ _id: this.department });
+  if (department.status === DepartmentStatus.CLOSED) {
+    next(new Error("Department must not be closed."));
+  }
+  next()
 });
 
 UserSchema.virtual("company").get(function () {
