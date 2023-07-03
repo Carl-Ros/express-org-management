@@ -3,6 +3,7 @@ const { Department } = require("../../models/department");
 
 const assert = require("assert");
 const { describe, it, afterEach } = require("node:test");
+require("../../db.js")
 
 async function createCompany({ name = "Test Company", code = "0001", status = CompanyStatus.ONBOARDING } = {}) {
   const companyData = {

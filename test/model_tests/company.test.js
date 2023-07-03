@@ -3,7 +3,7 @@ const {Company, Status: CompanyStatus} = require("../../models/company");
 
 const assert = require("assert");
 const {describe, it, afterEach} = require("node:test");
-
+require("../../db.js")
 
 const cleanupEntries = [];
 
