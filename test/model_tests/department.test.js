@@ -1,10 +1,8 @@
-const mongoose = require("mongoose");
 const { Company, Status: CompanyStatus } = require("../../models/company");
-const { Department, Status: DepartmentStatus } = require("../../models/department");
+const { Department } = require("../../models/department");
 
 const assert = require("assert");
 const { describe, it, afterEach } = require("node:test");
-const db = require("../../db.js")
 
 async function createCompany({ name = "Test Company", code = "0001", status = CompanyStatus.ONBOARDING } = {}) {
   const companyData = {
@@ -50,7 +48,7 @@ describe("Department", () => {
     };
 
     const newDepartment = new Department(departmentData);
-    savedDepartment = await newDepartment.save();
+    const savedDepartment = await newDepartment.save();
     assert.strictEqual(savedDepartment.name, departmentData.name);
     assert.strictEqual(savedDepartment.company.toString(), newCompany._id.toString());
     addToCleanup(Department, savedDepartment._id);
@@ -66,7 +64,7 @@ describe("Department", () => {
 
    const newDepartment = new Department(departmentData);
    try {
-     savedDepartment = await newDepartment.save();
+     const savedDepartment = await newDepartment.save();
      addToCleanup(Department, savedDepartment._id);
      assert.fail('Error should be thrown due to decomissioned company ref on creation');
    } catch (err) {

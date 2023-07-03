@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const {Status: departmentStatus} = require('./department.js')
 const Schema = mongoose.Schema;
 
 const Status = {
@@ -60,8 +59,8 @@ CompanySchema.pre('save', async function(next) {
 
 // Close associated departments on company decomission
 CompanySchema.pre('save', async function(next) {
-  company = await this.populate('departments')
-  for(department of company.departments){
+  const company = await this.populate('departments')
+  for(const department of company.departments){
     // TODO: Fix circular dependecy to be able to use department models enum Status instead
     department.status = "closed";
     await department.save();

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
@@ -12,7 +11,7 @@ const UserSchema = new Schema({
 
 UserSchema.virtual("fullName").get(function () {
   if (this.givenName && this.surname) {
-    return fullname = `${this.givenName} ${this.surname}`;
+    return `${this.givenName} ${this.surname}`;
   }
   return "";
 });

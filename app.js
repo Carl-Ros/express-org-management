@@ -6,7 +6,7 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes');
 const usersRouter = require('./routes/users');
-const db = require('./db.js')
+//const db = require('./db.js')
 const app = express();
 
 // view engine setup
@@ -28,7 +28,7 @@ app.use(function(req, res, next) {
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

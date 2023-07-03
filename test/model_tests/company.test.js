@@ -1,10 +1,9 @@
-const mongoose = require("mongoose");
 const {Department, Status: DepartmentStatus} = require("../../models/department");
 const {Company, Status: CompanyStatus} = require("../../models/company");
 
 const assert = require("assert");
 const {describe, it, afterEach} = require("node:test");
-const db = require("../../db.js")
+
 
 const cleanupEntries = [];
 
@@ -18,7 +17,6 @@ function clearCleanup(){
 
 // TODO:
 // department & geolocation - later
-// company.status -> decomission.status -> close, on all associated departments
 describe("Company", () => {
 
     afterEach(async () => {
@@ -109,9 +107,9 @@ describe("Company", () => {
       const savedCompany2 = await newCompany2.save();
       addToCleanup(Company,savedCompany2._id);
 
-      companyWithChildren = await Company.findById(savedParentCompany._id).populate('children')
+      const companyWithChildren = await Company.findById(savedParentCompany._id).populate('children')
 
-      for(child of companyWithChildren.children){
+      for(const child of companyWithChildren.children){
         assert.strictEqual(child.parent.toString(), companyWithChildren._id.toString())
       }
 
@@ -125,7 +123,7 @@ describe("Company", () => {
     
         try {
             const newCompany = new Company(companyData);
-            const savedCompany = await newCompany.save();
+            await newCompany.save();
             assert.fail('Error should be thrown due to invalid code');
           } catch (err) {
             assert.ok(err);
@@ -189,8 +187,8 @@ describe("Company", () => {
         addToCleanup(Company,savedCompany._id);
 
         try {
-            newCompany2 = new Company(companyData)
-            savedCompany2 = await newCompany2.save();
+            const newCompany2 = new Company(companyData)
+            const savedCompany2 = await newCompany2.save();
             addToCleanup(Company,savedCompany2._id);
             assert.fail('Error should be thrown due to duplicate code');
           } catch (err) {
@@ -214,7 +212,7 @@ describe("Company", () => {
       };
   
       const newDepartment = new Department(departmentData);
-      savedDepartment = await newDepartment.save();
+      const savedDepartment = await newDepartment.save();
       addToCleanup(Department, savedDepartment._id);
 
       assert.strictEqual(savedDepartment.status, DepartmentStatus.ACTIVE);
