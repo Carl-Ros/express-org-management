@@ -9,7 +9,7 @@ const Status = {
 
 const CompanySchema = new Schema({
   parent: { type: Schema.Types.ObjectId, ref: "Company"},
-  geolocation: { type: [Schema.Types.ObjectId], ref: "Geolocation"},
+  // geolocation: { type: [Schema.Types.ObjectId], ref: "Geolocation"}, this should be virtual from department
   name: { type: String, required: true },
   code: { type: String, required: true, min:4, max:4, unique:true},
   status: {
@@ -59,12 +59,14 @@ CompanySchema.pre('save', async function(next) {
 
 // Close associated departments on company decomission
 CompanySchema.pre('save', async function(next) {
-  const company = await this.populate('departments')
-  for(const department of company.departments){
-    // TODO: Fix circular dependecy to be able to use department models enum Status instead
-    department.status = "closed";
-    await department.save();
-    // set department to closed and remove company association
+  if(this.status === Status.DECOMISSIONED){
+    const company = await this.populate('departments')
+    for(const department of company.departments){
+      // TODO: Fix circular dependecy to be able to use department models enum Status instead
+      department.status = "closed";
+      await department.save();
+      // set department to closed and remove company association
+    }
   }
   next();
 
