@@ -7,6 +7,7 @@ const UserSchema = new Schema({
   surname: { type: String, required: true, maxLength: 100 },
   email: { type: String, unique: true},
   m365License: { type: String},
+  manager: {type: Schema.Types.ObjectId, ref: "User"},
   department: {type: Schema.Types.ObjectId, ref: "Department"}
 });
 
@@ -19,11 +20,13 @@ UserSchema.virtual("fullName").get(function () {
 
 // Validate department ref
 UserSchema.pre('save', async function(next) {
-  const department = await Department.findOne({ _id: this.department });
-  if (department.status === DepartmentStatus.CLOSED) {
-    next(new Error("Department must not be closed."));
+  if(this.department){
+    const department = await Department.findOne({ _id: this.department });
+    if (department.status === DepartmentStatus.CLOSED) {
+      next(new Error("Department must not be closed."));
+    }
+    next()
   }
-  next()
 });
 
 UserSchema.virtual("company").get(function () {
@@ -33,6 +36,12 @@ UserSchema.virtual("company").get(function () {
 UserSchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object
   return `/catalog/User/${this._id}`;
+});
+
+UserSchema.virtual("directReports", {
+  ref: "User",
+  localField: "_id",
+  foreignField: "manager",
 });
 
 module.exports = mongoose.model("User", UserSchema);
