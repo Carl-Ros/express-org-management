@@ -29,6 +29,36 @@ UserSchema.pre('save', async function(next) {
   }
 });
 
+// Validate manager
+UserSchema.pre('save', async function(next) {
+  const errors = [];
+  if(this.manager){
+      if(this.manager.toString() === this.id.toString()) {
+          errors.push(`User cannot reference itself as manager.`);
+      }
+
+      const User = mongoose.model('User');
+      let manager = await User.findOne({ _id: this.manager });
+      let prevManager;
+      console.log("this" + this._id)
+      while(manager.manager){
+        prevManager = manager;
+        manager = await User.findOne({ _id: manager.manager._id });
+        if(manager._id.toString() === this.id.toString()){
+          errors.push(`Circular manager relationship is not allowed. The manager ${this.manager._id} has ${prevManager._id} in the reporting line, which has a reference to the current user ${this._id}`);
+        }
+      }
+  }   
+  
+  if(errors.length > 0){
+      const errMsg = errors.join("\n");
+      this.invalidate('parent', errMsg);
+      next(new Error(errMsg));
+  }
+
+  next()
+});
+
 UserSchema.virtual("company").get(function () {
   return this.department ? this.department.company : "";
 });

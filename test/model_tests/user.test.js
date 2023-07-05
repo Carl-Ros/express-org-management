@@ -108,8 +108,6 @@ describe("User", () => {
 
     });
 
-
-
     it("should not be able to add user to a closed department", async () => {
         const newDepartment = await createDepartment({ status: DepartmentStatus.CLOSED });
 
@@ -130,6 +128,54 @@ describe("User", () => {
             assert.ok(err);
         }
     });
+
+    it("should not be able to have a circular manager relationship", async () => {
+        const newDepartment = await createDepartment();
+
+        const userData = {
+            givenName: "Test",
+            surname: "User",
+            email: "test.user@example.com",
+            department: newDepartment._id
+        }
+        const newUser = new User(userData);
+        const savedUser = await newUser.save();
+        addToCleanup(User, savedUser._id);
+
+        const managersManagerData = {
+            givenName: "Test",
+            surname: "User",
+            email: "test.manager1@example.com",
+            department: newDepartment._id,
+            manager: savedUser._id
+        }
+        const newManagersManager = new User(managersManagerData);
+        const savedManagersManager = await newManagersManager.save();
+        addToCleanup(User, savedManagersManager._id);
+
+        const managerData = {
+            givenName: "Test",
+            surname: "User",
+            email: "test.manager2@example.com",
+            department: newDepartment._id,
+            manager: savedManagersManager._id
+        }
+
+        const newManager = new User(managerData);
+        const savedManager = await newManager.save();
+        addToCleanup(User, savedManager._id);
+
+        // A -> B -> C -> A should not be allowed
+        savedUser.manager = savedManager._id
+
+        try {
+            await newUser.save();
+            assert.fail('Error should be thrown due to circular manager ref');
+        } catch (err) {
+            console.log(err);
+            assert.ok(err);
+        }
+    });    
 
 });
 
