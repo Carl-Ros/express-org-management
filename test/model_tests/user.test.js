@@ -172,7 +172,6 @@ describe("User", () => {
             await newUser.save();
             assert.fail('Error should be thrown due to circular manager ref');
         } catch (err) {
-            console.log(err);
             assert.ok(err);
         }
     });    

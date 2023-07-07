@@ -40,7 +40,6 @@ UserSchema.pre('save', async function(next) {
       const User = mongoose.model('User');
       let manager = await User.findOne({ _id: this.manager });
       let prevManager;
-      console.log("this" + this._id)
       while(manager.manager){
         prevManager = manager;
         manager = await User.findOne({ _id: manager.manager._id });
