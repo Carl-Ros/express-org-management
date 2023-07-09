@@ -64,7 +64,7 @@ UserSchema.virtual("company").get(function () {
 
 UserSchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object
-  return `/catalog/User/${this._id}`;
+  return `/users/${this._id}`;
 });
 
 UserSchema.virtual("directReports", {

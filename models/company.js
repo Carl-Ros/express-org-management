@@ -76,7 +76,7 @@ CompanySchema.pre('save', async function(next) {
 // Virtual for Company's URL
 CompanySchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object
-  return `/catalog/Company/${this._id}`;
+  return `/companies/${this._id}`;
 });
 
 CompanySchema.virtual("children", {
