@@ -1,8 +1,77 @@
 body {
-  padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  display:grid;
+  min-height:100%;
+  grid-template-rows: repeat(3,auto); 
+  grid-template-columns: auto; 
+  grid-template-areas: 
+    "header"
+    "main" 
+    "footer"; 
 }
 
 a {
   color: #00B7FF;
+  text-decoration: none;
+}
+
+header {
+	grid-area:header;
+	box-sizing:border-box;
+	min-width:100%;
+	display:flex;
+	margin:0 auto 0 auto;
+  border-bottom: 1px solid grey;
+}
+
+main {
+	grid-area:main;
+  padding: 24px;
+	margin:auto;
+}
+
+main > ul {
+  padding: 24px;
+}
+
+footer {
+	grid-area:footer;
+	bottom:0; left:0;
+	padding:16px;
+  border-top: 1px solid grey;
+}
+
+header > ul {
+  display:flex;
+  justify-content:space-between;
+  list-style: none;
+}
+
+header > ul > li {
+  margin: 0px 12px 0px 12px;
+
+}
+
+a.create-btn {
+  font-size: 24px;
+  color:lime;
+}
+
+div.input-form {
+  max-width: 80%;
+  margin:auto;
+}
+
+div.input-form > * {
+  margin-right: 25%;
+}
+
+div.input-form > button {
+  margin-top: 24px;
+}
+
+div.input-form > label {
+  display:block;
+  min-width:100%;
+  margin-top: 24px;
 }
