@@ -1,0 +1,30 @@
+extends layout
+
+block content
+  h1= title
+
+  h2 Children
+  ul
+    each child in company.children
+      li
+        a(href=child.url) #{child.name}
+        |  (#{child.code})
+    else
+      li Company has no children.
+
+  h2 Departments
+  ul
+    each department in company.departments
+      li
+        a(href=department.url) #{department.name}
+    else
+      li Company has no departments.
+
+  h2 Users
+  ul
+    each user in user_list
+      li
+        a(href=user.url) #{user.fullName}
+    else
+      li Company has no users.
+
