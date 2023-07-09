@@ -58,8 +58,9 @@ UserSchema.pre('save', async function(next) {
   next()
 });
 
-UserSchema.virtual("company").get(function () {
-  return this.department ? this.department.company : "";
+UserSchema.virtual("company").get(async function () {
+  const departmentWithCompany = this.department ? await this.department.populate("company") : undefined;
+  return departmentWithCompany.company;
 });
 
 UserSchema.virtual("url").get(function () {

@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  h1= title
+
+  h2 Company
+  if company 
+    p Company : #{company.name} (#{company.code})
+  else
+    p Not assigned to a company.
+
+  if user.manager
+    p Manager: 
+      a(href=user.manager.url) #{user.manager.fullName} (#{user.manager.email})
+
+  if user.directReports.length > 0
+    h2 Direct reports:
+    ul
+      each directReport in user.directReports
+        li
+          a(href=directReport.url) #{directReport.fullName} (#{directReport.email})
+
