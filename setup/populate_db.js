@@ -28,6 +28,15 @@ async function createCompanies() {
         companies.push(savedCompany);
         console.log(`Saved Company: ${savedCompany}`);
     }
+
+    companies[1].parent = companies[0];
+    companies[2].parent = companies[0];
+    companies[4].parent = companies[3];
+    await Promise.all(() => {
+        companies[1].save();
+        companies[2].save();
+        companies[4].save();
+    }); 
 }
 
 async function createDepartments() {
@@ -135,7 +144,7 @@ async function generateUsers(amount, departments) {
             if (counter === 0) {
                 candidateEmail = `${givenName}.${surname}@example.com`.toLowerCase();
             } else {
-                candidateEmail = `${givenName}.${counter}${surname}@example.com`.toLowerCase();
+                candidateEmail = `${givenName}.${surname}${counter}@example.com`.toLowerCase();
             }
             if(users.filter(({email}) => email === candidateEmail).length > 0){
                 counter ++;
@@ -162,6 +171,7 @@ async function generateUsers(amount, departments) {
         }
 
         // roughly 8 employees per manager
+        // TODO: Fix so that it stays within the same company
         if (users.length % 8 === 0){
             users[users.length - 1].manager = users[Math.floor(Math.random() * Math.floor(users.length - 1))];
             try {
