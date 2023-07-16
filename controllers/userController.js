@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
-const User = require("../models/user")
+const User = require("../models/user");
+const {Tree} = require("../tree");
 
 // Display detail page for a specific user.
 exports.user_get = asyncHandler(async (req, res) => {
@@ -39,11 +40,14 @@ exports.user_update_post = asyncHandler(async (req, res) => {
 });
 
 exports.user_list = asyncHandler(async (req, res) => {
-    const users = await User.find({}).sort({}).exec();
+    const users = await User.find({}).populate(["directReports", "manager"]).exec();
+    users.sort((a, b) => {
+        return a.surname.localeCompare(b.surname, "sv");
+    })
+    const userTree = new Tree(users, "directReports", "manager", "_id", "fullName");
+    const treeNodes = userTree.getNodes();
 
     res.render("user_list", {
-        title: "Users", user_list: users.sort((a, b) => {
-            return a.surname.localeCompare(b.surname, "sv");
-        })
+        title: "Users", treeNodes
     });
 });
