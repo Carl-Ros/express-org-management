@@ -14,12 +14,12 @@ const commonSurnames = parseCSV('./common_swedish_surnames.txt');
 // Companies
 async function createCompanies() {
     const companyData = [
-        {name: "Arveti", code: "0001", status: CompanyStatus.ACTIVE},
-        {name: "Bisho",code: "0002",status: CompanyStatus.ACTIVE},
-        {name: "Citrim",code: "0003",status: CompanyStatus.ACTIVE},
-        {name: "Denta",code: "0004",status: CompanyStatus.ACTIVE},
-        {name: "Epster",code: "0005",status: CompanyStatus.ONBOARDING},
-        {name: "Fwiendly",code: "0006",status: CompanyStatus.DECOMISSIONED}
+        {name: "Arveti", code: "0010", status: CompanyStatus.ACTIVE},
+        {name: "Bisho",code: "0011",status: CompanyStatus.ACTIVE},
+        {name: "Citrim",code: "0012",status: CompanyStatus.ACTIVE},
+        {name: "Denta",code: "0013",status: CompanyStatus.ACTIVE},
+        {name: "Epster",code: "0014",status: CompanyStatus.ONBOARDING},
+        {name: "Fwiendly",code: "0015",status: CompanyStatus.DECOMISSIONED}
     ];
 
     for(const company of companyData){
