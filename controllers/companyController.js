@@ -1,21 +1,28 @@
 const asyncHandler = require("express-async-handler");
-const {Company, Status} = require("../models/company")
+const {Company, Status} = require("../models/company");
+const {Tree} = require("../tree");
 
 // Display detail page for a specific company.
 exports.company_get = asyncHandler(async (req, res) => {
     const company = await Company.findById(req.params.id).populate(["departments", "children"]);
     const users = [];
-    for(const department of company.departments){
+
+    const departments = company.departments.map(async (department) => {
         const departmentUsers = await department.populate("users");
         if(departmentUsers.users){
-            users.push(...departmentUsers.users);
+            const populatedUsers = await Promise.all(departmentUsers.users.map(async (user) => {
+                return await user.populate(["directReports", "manager"]);
+            }));
+           users.push(...populatedUsers);
         }
-    }
+    });
     
-    res.render("company_get", { title: `${company.name} (${company.code})`, company: company, 
-    user_list: users.sort((a,b) => {
-        return a.surname.localeCompare(b.surname, "sv");
-    } )});
+    await Promise.all(departments);
+
+    const userTree = new Tree(users, "directReports", "manager", "_id", "fullName");
+    const treeNodes = userTree.getNodes();
+
+    res.render("company_get", { title: `${company.name} (${company.code})`, company: company, treeNodes});
   });
   
   // Display company create form on GET.
@@ -49,7 +56,9 @@ exports.company_get = asyncHandler(async (req, res) => {
   });
 
   exports.company_list = asyncHandler(async (req, res) => {
-    const companies = await Company.find({}).sort({ name: "asc"}).exec();
+    const companies = await Company.find({}).sort({ name: "asc"}).populate(["children", "parent"]).exec();
+    const companyTree = new Tree(companies, "children", "parent", "_id", "name");
+    const treeNodes = companyTree.getNodes();
 
-    res.render("company_list", {title: "Companies", company_list: companies});
+    res.render("company_list", {title: "Companies", company_list: companies, treeNodes});
   });
