@@ -22,9 +22,6 @@ block content
 
   h2 Users
   ul
-    each user in user_list
-      li
-        a(href=user.url) #{user.fullName}
-    else
-      li Company has no users.
-
+    each node in treeNodes
+      li(style=`margin-left: ${node.depth * 24}px`)
+        a(href=`/users/${node.value}`) #{node.display}

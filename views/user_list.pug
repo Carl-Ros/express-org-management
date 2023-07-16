@@ -4,8 +4,8 @@ block content
   h1= title
 
   ul
-    each user in user_list
-      li
-        a(href=user.url) #{user.fullName} (#{user.email})
+    each node in treeNodes
+      li(style=`margin-left: ${node.depth * 24}px`)
+        a(href=`/users/${node.value}`) #{node.display}
     else
-      li There are no departments.
+      li There are no users.

@@ -4,10 +4,9 @@ block content
   h1= title
 
   ul
-    each company in company_list
-      li
-        a(href=company.url) #{company.name}
-        |  (#{company.code})
-        
+    each node in treeNodes
+      li(style=`margin-left: ${node.depth * 24}px`)
+        a(href=`/companies/${node.value}`) #{node.display}
+
     else
       li There are no companies.
