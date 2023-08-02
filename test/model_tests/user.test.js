@@ -4,6 +4,7 @@ const User = require("../../models/user")
 
 const assert = require("assert");
 const { describe, it, afterEach } = require("node:test");
+const { AssertionError } = require("assert");
 require("../../db.js");
 
 const cleanupEntries = [];
@@ -77,13 +78,11 @@ describe("User", () => {
     });
 
     it("A manager should have direct reports", async () => {
-        const newDepartment = await createDepartment();
 
         const managerData = {
             givenName: "Test",
             surname: "User",
             email: "test.manager@example.com",
-            department: newDepartment._id
         }
 
         const newManager = new User(managerData);
@@ -94,7 +93,6 @@ describe("User", () => {
             givenName: "Test",
             surname: "User",
             email: "test.user@example.com",
-            department: newDepartment._id,
             manager: savedManager._id
         }
 
@@ -105,8 +103,27 @@ describe("User", () => {
         const manager = await User.findById(savedManager._id).populate('directReports')
         assert.strictEqual(manager.directReports.length, 1);
         assert.strictEqual(savedDirectReport._id.toString(), manager.directReports[0]._id.toString());
-
     });
+
+    it("should be not be able to assign an invalid license", async () => {
+
+        const userData = {
+            givenName: "Test",
+            surname: "User",
+            email: "test.user@example.com",
+        }
+
+        const newUser = new User(userData);
+        newUser.m365License = "604ec28a-ae18-4bc6-91b0-11da94504baX"
+
+        try {
+            await newUser.validate();
+            assert.fail('Error should be thrown due to invalid license');
+        } catch (err) {
+            assert.ok(err);
+        }
+    });
+
 
     it("should not be able to add user to a closed department", async () => {
         const newDepartment = await createDepartment({ status: DepartmentStatus.CLOSED });

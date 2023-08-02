@@ -1,12 +1,22 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const {Department, Status: DepartmentStatus} = require("./department")
+const {Department, Status: DepartmentStatus} = require("./department");
+const { getLicenses } = require("../fetch_licenses");
 
 const UserSchema = new Schema({
   givenName: { type: String, required: true, maxLength: 100 },
   surname: { type: String, required: true, maxLength: 100 },
   email: { type: String, unique: true},
-  m365License: { type: String},
+  m365License: {
+     type: String,
+     validate: {
+      validator: async (value) => {
+        const licenses = await getLicenses();
+        return licenses.some(({ Service_Plan_Id }) => Service_Plan_Id === value);
+      },
+      message: props => `Invalid license. '${props.value}'`
+    }
+  },
   manager: {type: Schema.Types.ObjectId, ref: "User"},
   department: {type: Schema.Types.ObjectId, ref: "Department"}
 });

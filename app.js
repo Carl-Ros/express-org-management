@@ -8,7 +8,8 @@ const indexRouter = require('./routes');
 const companyRouter = require("./routes/companies");
 const departmentRouter = require("./routes/departments");
 const userRouter = require("./routes/users");
-require('./db.js')
+require('./db.js');
+require('./fetch_licenses.js');
 const app = express();
 
 // view engine setup
