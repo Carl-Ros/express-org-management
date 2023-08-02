@@ -96,15 +96,4 @@ class Tree {
     }
 }
 
- const testObjs = [
-     { name: "Ca", anscestor: {name:"B"}},
-     { name: "A", descendants: [{name:"B"}] },
-     { name: "C", descendants: [{name:"D"}], anscestor: {name:"B"} },
-     { name: "D", anscestor: {name:"C"} },
-     { name: "B", descendants: [{name:"C"}, {name:"Ca"}], anscestor: {name:"A"} }
- ]
-
-const myTree = new Tree(testObjs, "descendants", "anscestor", "name");
-myTree.print()
-
 module.exports = { Tree }
