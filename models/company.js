@@ -27,8 +27,7 @@ CompanySchema.pre('save', function(next) {
         this.invalidate('code', `Company code is of wrong format, expected 4 digit numeric string, got ${this.code}`);
         next(new Error(`Company code is of wrong format, expected 4 digit numeric string, got ${this.code}`));
     } else {
-        const paddedCode = "0000" + this.code;
-        this.code = paddedCode.slice(paddedCode.length-4);
+        this.code = this.code.padStart(4,"0")
         next()
     }
   });
