@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const {Department, Status: DepartmentStatus} = require("../models/department")
 const {Company, Status: CompanyStatus} = require("../models/company")
+const Geolocation = require("../models/geolocation");
 const {body, validationResult} = require("express-validator");
 
 // Display detail page for a specific department.
@@ -15,7 +16,8 @@ exports.department_get = asyncHandler(async (req, res) => {
   // Display department create form on GET.
   exports.department_create_get = asyncHandler(async (req, res) => {
     const companies = await Company.find({status: {$ne : CompanyStatus.DECOMISSIONED}}).exec();
-    res.render("forms/department_form", { title: "Create Department", companies: companies});
+    console.log(process.env.GOOGLE_MAPS_KEY)
+    res.render("forms/department_form", { title: "Create Department", companies: companies, googleMapsKey: process.env.GOOGLE_MAPS_API_KEY});
   });
   
   // Handle department create on POST.
@@ -30,15 +32,13 @@ exports.department_get = asyncHandler(async (req, res) => {
       .escape()
       .notEmpty(),
   
-    // Process request after validation and sanitization.
     asyncHandler(async (req, res) => {
-      // Extract the validation errors from a request.
       const errors = validationResult(req);
-      const department = new Department({ name: req.body.name, company: req.body.company });
+      const location = new Geolocation({latitude: req.body.latitude, longitude: req.body.longitude});
+      const department = new Department({ name: req.body.name, company: req.body.company, geolocation: location});
       const companies = await Company.find({status: {$ne : CompanyStatus.DECOMISSIONED}}).exec();
   
       if (!errors.isEmpty()) {
-        // There are errors. Render the form again with sanitized values/error messages.
         res.render("forms/department_form", {
           title: "Create Department",
           department: department,
@@ -47,6 +47,7 @@ exports.department_get = asyncHandler(async (req, res) => {
         });
         return;
       } else {
+          await location.save();
           await department.save();
           res.redirect(department.url);
       }

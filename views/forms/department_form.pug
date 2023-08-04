@@ -1,0 +1,56 @@
+extends ../layout
+
+block content
+  h1 #{title}
+  form(method='POST' action='')
+    div.input-form
+      label(for='name') Name:
+      input(type='text', name='name' value=(department === undefined ? '' : department.name))
+      label(for='company') Company:
+      select(type='select', name='company' required='true' )    
+        each company in companies
+          option(value=company._id) #{company.name} (#{company.code})
+      #map
+      input(type="hidden" id="latitudeInput" name="latitude")
+      input(type="hidden" id="longitudeInput" name="longitude")
+      button(type='submit') Submit
+      
+  if errors
+   ul
+    for error in errors
+     li!= error.msg
+  
+  script.
+    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+      key: "#{googleMapsKey}",
+      v: "weekly",
+      // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
+      // Add other bootstrap parameters as needed, using camel case.
+    });
+    let map;
+    let marker;
+    async function initMap() {
+      const { Map } = await google.maps.importLibrary("maps");
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 6,
+        center: { lat: 59.325, lng: 18.07 },
+      });
+
+      marker = new google.maps.Marker({
+        map,
+        draggable: true,
+        animation: google.maps.Animation.DROP,
+        position: { lat: 59.327, lng: 18.067 },
+      });
+
+      marker.addListener("dragend", () => {
+        updateLocationFields(marker.getPosition());
+      });
+
+      function updateLocationFields(location) {
+        document.getElementById("latitudeInput").value = location.lat();
+        document.getElementById("longitudeInput").value = location.lng();
+      } 
+    }
+    
+    initMap();
