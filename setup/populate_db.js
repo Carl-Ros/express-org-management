@@ -1,5 +1,6 @@
-require("../db.js")
-
+require('dotenv').config({ path: '../.env'});
+require("../db.js");
+require("./wipe_db")
 const {Company, Status: CompanyStatus} = require('../models/company')
 const {Department, Status: DepartmentStatus} = require('../models/department')
 const User = require('../models/user')
@@ -32,11 +33,11 @@ async function createCompanies() {
     companies[1].parent = companies[0];
     companies[2].parent = companies[0];
     companies[4].parent = companies[3];
-    await Promise.all(() => {
-        companies[1].save();
-        companies[2].save();
-        companies[4].save();
-    }); 
+    await Promise.all([
+        companies[1].save(),
+        companies[2].save(),
+        companies[4].save(),
+    ]); 
 }
 
 async function createDepartments() {
@@ -134,6 +135,17 @@ async function createUsers() {
 }
 
 async function generateUsers(amount, departments) {
+    const createdUsers = [];
+    let amountStrategy;
+
+    if (amount <= 150) {
+        amountStrategy = [4, 2, 2, 1];
+    } else if (amount <= 500) {
+        amountStrategy = [5, 3, 3, 1];
+    } else {
+        amountStrategy = [6, 4, 4, 1];
+    }
+
     for (let i = 0; i < amount; i++) {
         const givenName = commonGivenNames[Math.floor(Math.random() * Math.floor(commonGivenNames.length))];
         const surname = commonSurnames[Math.floor(Math.random() * Math.floor(commonSurnames.length))];
@@ -146,7 +158,7 @@ async function generateUsers(amount, departments) {
             } else {
                 candidateEmail = `${givenName}.${surname}${counter}@example.com`.toLowerCase();
             }
-            if(users.filter(({email}) => email === candidateEmail).length > 0){
+            if(createdUsers.filter(({email}) => email === candidateEmail).length > 0){
                 counter ++;
             } else {
                 email = candidateEmail;
@@ -163,26 +175,53 @@ async function generateUsers(amount, departments) {
         const newUser = new User(userData);
         try {
             const savedUser = await newUser.save();
-            users.push(savedUser);
-            console.log(`Saved User: ${savedUser}`);
+            createdUsers.push(savedUser);
+            console.log(`Saved User ${i}`);
         } catch (err) {
             console.log("Saving user failed:");
             console.log(err);
         }
+    }
 
-        // roughly 8 employees per manager
-        // TODO: Fix so that it stays within the same company
-        if (users.length % 8 === 0){
-            users[users.length - 1].manager = users[Math.floor(Math.random() * Math.floor(users.length - 1))];
-            try {
-                users[users.length - 1].save();
-            } catch (err) {
-                // suppressed
+    const assigned = [];
+    const numManagers = amountStrategy.reduce((sum, val) => sum * val);
+    const totalDirectReports = createdUsers.length - numManagers;
+    const numLineManagers = amountStrategy[0];
+
+    // assign managers
+    for(let i = 0; i < createdUsers.length; i++){
+        if(amountStrategy.length === 0){ 
+            break; // only direct reports left
+        }
+
+        let numDirectReports;
+        if(amountStrategy.length === 1){ // line managers consume remaining as direct reports
+            numDirectReports = Math.floor(totalDirectReports / numLineManagers);  
+        } else {
+            numDirectReports = amountStrategy[amountStrategy.length - 2];
+        }
+
+        if(amountStrategy[amountStrategy.length - 1] === 1){ // peek last
+            amountStrategy.pop()
+        } else {
+            amountStrategy[amountStrategy.length - 1] -= 1;
+        }
+
+        for(let j = i + 1; j <= createdUsers.length; j++){
+            if(numDirectReports === 0 ){
+                break;
+            }
+
+            if(!assigned.includes(createdUsers[j])) {
+                createdUsers[j].manager = createdUsers[i];
+                assigned.push(createdUsers[j])
+                numDirectReports--;
+                await createdUsers[j].save();
             }
         }
-    }
+    users.push(...createdUsers)
+   }
 }
-
 function parseCSV(csvFilePath) {
     const fileData = fs.readFileSync(csvFilePath, 'utf-8');
     return fileData.split('\n');
