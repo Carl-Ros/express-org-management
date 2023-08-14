@@ -18,7 +18,8 @@ const UserSchema = new Schema({
     }
   },
   manager: {type: Schema.Types.ObjectId, ref: "User"},
-  department: {type: Schema.Types.ObjectId, ref: "Department"}
+  department: {type: Schema.Types.ObjectId, ref: "Department"},
+  company: {type: Schema.Types.ObjectId, ref: "Company"},
 });
 
 UserSchema.virtual("fullName").get(function () {
@@ -38,6 +39,18 @@ UserSchema.pre('save', async function(next) {
     next()
   }
 });
+
+// Inherit department company on save
+UserSchema.pre('save', async function(next) {
+  if(this.department){
+    const department = await Department.findOne({ _id: this.department });
+    if (department.company) {
+      this.company = department.company;
+    }
+    next()
+  }
+});
+
 
 // Validate manager
 UserSchema.pre('save', async function(next) {
@@ -66,11 +79,6 @@ UserSchema.pre('save', async function(next) {
   }
 
   next()
-});
-
-UserSchema.virtual("company").get(async function () {
-  const departmentWithCompany = this.department ? await this.department.populate("company") : undefined;
-  return departmentWithCompany.company;
 });
 
 UserSchema.virtual("url").get(function () {

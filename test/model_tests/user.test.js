@@ -4,7 +4,6 @@ const User = require("../../models/user")
 
 const assert = require("assert");
 const { describe, it, afterEach } = require("node:test");
-const { AssertionError } = require("assert");
 require("../../db.js");
 
 const cleanupEntries = [];
@@ -75,6 +74,22 @@ describe("User", () => {
         const savedUser = await newUser.save();
         addToCleanup(User, savedUser._id);
         assert.strictEqual(savedUser.department, newDepartment._id);
+    });
+
+    it("should inherit the departments company", async () => {
+        const newDepartment = await createDepartment();
+
+        const userData = {
+            givenName: "Test",
+            surname: "User",
+            email: "test.user@example.com",
+            department: newDepartment._id
+        }
+
+        const newUser = new User(userData);
+        const savedUser = await newUser.save();
+        addToCleanup(User, savedUser._id);
+        assert.strictEqual(savedUser?.company.toString(), newDepartment?.company.toString());
     });
 
     it("A manager should have direct reports", async () => {
