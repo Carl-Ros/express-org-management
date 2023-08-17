@@ -1,24 +1,14 @@
 const asyncHandler = require("express-async-handler");
 const {Company, Status} = require("../models/company");
+const User = require("../models/user");
+
 const {Tree} = require("../tree");
 
 // Display detail page for a specific company.
 exports.company_get = asyncHandler(async (req, res) => {
     const company = await Company.findById(req.params.id).populate(["departments", "children"]);
-    const users = [];
-
-    const departments = company.departments.map(async (department) => {
-        const departmentUsers = await department.populate("users");
-        if(departmentUsers.users){
-            const populatedUsers = await Promise.all(departmentUsers.users.map(async (user) => {
-                return await user.populate(["directReports", "manager"]);
-            }));
-           users.push(...populatedUsers);
-        }
-    });
     
-    await Promise.all(departments);
-
+    const users = await User.find({company: req.params.id}).populate(["directReports", "manager"]);
     const userTree = new Tree(users, "directReports", "manager", "_id", "fullName");
     const treeNodes = userTree.getNodes();
 
