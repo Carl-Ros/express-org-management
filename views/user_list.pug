@@ -2,10 +2,69 @@ extends layout
 
 block content
   h1= title
+  div.queryFilterContainer
+    label(for="isManagerCheckbox") Manager
+    input(type="checkbox" id="isManagerCheckbox" name="categories" value="isManager")
+    label(for='company') Company:
+      select(type='select', id="selectedCompanies" name="selectedCompanies" required='true' multiple)    
+        each company in companies
+          option(value=company._id) #{company.name} (#{company.code})
 
-  ul
-    each node in treeNodes
-      li(style=`margin-left: ${node.depth * 24}px`)
-        a(href=`/users/${node.value}`) #{node.display}
-    else
-      li There are no users.
+
+    button(type="button" onclick="filterUsers()")
+      | Apply Filters
+
+  div.queryContainer
+    label(for="userSearch") Search User:
+    input(type="text" id="userSearch" name="userSearch" placeholder="Enter user name")
+    ul#autoCompleteResults
+
+  script.
+      function filterUsers() {
+        const isManagerCheckbox = document.getElementById('isManagerCheckbox').checked;
+        const selectedCompanies = document.getElementById('selectedCompanies');
+        
+        const selectedCategories = {
+          isManager: isManagerCheckbox,
+          company: selectedCompanies?.selectedOptions?.length > 0 ? [...selectedCompanies.selectedOptions].map(option => option.value) : [],
+        };
+
+        const searchQuery = userSearchInput.value.trim();
+        fetch(`/users/search?q=${encodeURIComponent(searchQuery)}&categories=${encodeURIComponent(JSON.stringify(selectedCategories))}`)
+          .then(response => response.json())
+          .then(data => {
+            populateAutoCompleteResults(data);
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      }
+
+      const userSearchInput = document.getElementById('userSearch');
+      const autoCompleteResults = document.getElementById('autoCompleteResults');
+
+      function populateAutoCompleteResults(users) {
+        console.log(users)
+        users.sort((a, b) => {
+          return a.surname.localeCompare(b.surname, "sv");
+        });
+        autoCompleteResults.innerHTML = '';
+        users.forEach(user => {
+          if(user.fullName){
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `/users/${user._id}`;
+            a.innerHTML = user.fullName;
+            li.appendChild(a);
+            autoCompleteResults.appendChild(li);
+          } 
+        });
+      }
+
+      let debounceTimer;
+      userSearchInput.addEventListener('keyup', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(filterUsers, 300);
+      });
+
+      
