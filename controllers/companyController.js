@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const {Company, Status} = require("../models/company");
 const User = require("../models/user");
-
+const { body, validationResult } = require("express-validator");
 const {Tree} = require("../tree");
 
 // Display detail page for a specific company.
@@ -17,13 +17,56 @@ exports.company_get = asyncHandler(async (req, res) => {
   
   // Display company create form on GET.
   exports.company_create_get = asyncHandler(async (req, res) => {
-    res.send("NOT IMPLEMENTED: company create GET");
+    const companies = await Company.find({ status: { $ne: Status.DECOMISSIONED } }).exec();
+    res.render("forms/company_form", { title: "Create Company", companies: companies});
   });
   
+  
   // Handle company create on POST.
-  exports.company_create_post = asyncHandler(async (req, res) => {
-    res.send("NOT IMPLEMENTED: company create POST");
-  });
+  exports.company_create_post = [
+    // Validate and sanitize the name field.
+    body("name", "Company name must contain at least 2 characters")
+      .trim()
+      .isLength({ min: 2 })
+      .escape(),
+    body("code", "Company code must be 4 digits, prefixed with zeroes e.g. '0001'")
+      .trim()
+      .isLength({min: 4, max: 4}),
+    body("parent", "parent must be active")
+      .trim()
+      .custom(async value => {
+        if(value){
+          const parent = await Company.find({ 
+            status: { $ne: Status.DECOMISSIONED },
+            id: value
+          }).exec();
+
+          if (!parent) {
+            throw new Error('Parent company missing or decommissioned');
+          }
+        }
+      }),
+  
+    asyncHandler(async (req, res) => {
+      const errors = validationResult(req);
+      const companies = await Company.find({ status: { $ne: Status.DECOMISSIONED } }).exec();
+      const company = new Company({ name: req.body.name,code: req.body.code, parent: req.body.parent});
+
+  
+      if (!errors.isEmpty()) {
+        res.render("forms/company_form", {
+          title: "Create Company",
+          companies: companies,
+          errors: errors.array(),
+        });
+        return;
+      } else {
+        // await location.save();
+        await company.save();
+        res.redirect(company.url);
+      }
+    })
+  ];
   
   // Display company delete form on GET.
   exports.company_delete_get = asyncHandler(async (req, res) => {

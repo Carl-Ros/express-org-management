@@ -2,7 +2,9 @@ extends layout
 
 block content
   h1= title
-
+  div.border
+    a.create-btn(href='/companies/create')|+ 
+    | #[Strong Create new company]
   ul
     each node in treeNodes
       li(style=`margin-left: ${node.depth * 24}px`)
