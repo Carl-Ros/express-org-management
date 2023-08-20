@@ -10,7 +10,7 @@ const Status = {
 
 const DepartmentSchema = new Schema({
   company: { type: Schema.Types.ObjectId, ref: "Company", required: true},
-  geolocation: { type: [Schema.Types.ObjectId], ref: "Geolocation"},
+  geolocation: { type: Schema.Types.ObjectId, ref: "Geolocation"},
   name: { type: String, required: true },
   status: {
     type: String,
