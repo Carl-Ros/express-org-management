@@ -5,10 +5,10 @@ block content
     form(method='POST' action='')
         div.input-form
             label(for='name') Name:
-            input(type='text', name='name' value=(department === undefined ? '' : department.name))
+            input(type='text', name='name')
 
             label(for='code') Code: 
-            input(type='text', name='code' value=(department === undefined ? '' : department.name))
+            input(type='text', name='code')
 
             label(for='company') Parent company:
             select(type='select', name='parent')    
