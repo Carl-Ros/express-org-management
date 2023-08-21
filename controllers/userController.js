@@ -163,17 +163,16 @@ exports.user_generate_email_get = asyncHandler(async (req, res) => {
     .replace(/[^a-zA-Z0-9_/-@.]/g,'') // remove illegal email characters
     
 
-    let suffix = "";
+    let suffix = 0;
     let unique = false;
     while(!unique){
-        generatedMailNickname = (generatedMailNickname + suffix).toLowerCase();
-        const matches = await User.find({email: generatedMailNickname + '@' + domain});
-        console.log(matches)
+        const candidateEmail = (generatedMailNickname + (suffix > 0 ? suffix : '') ).toLowerCase();
+        const matches = await User.find({email: candidateEmail + '@' + domain});
         if(matches.length === 0){
             unique = true;
+            generatedMailNickname = candidateEmail;
         }
-        suffix += 1;    
+        suffix++;    
     }
-
     res.send(generatedMailNickname + '@' + domain);
 });
