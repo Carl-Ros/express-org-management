@@ -1,0 +1,76 @@
+extends ../layout
+
+block content
+    h1 #{title}
+    form(method='POST' action='')
+        div.input-form
+            label(for='givenName') First name:
+            input(type='text', name='givenName' id='givenName')
+
+            label(for='surname') Last name:
+            input(type='text', name='surname' id='surname')
+
+            label(for='emailDomain') Email domain:
+            input(type='text' for='emailDomain' id='domain')
+
+            label(for='email') Email: 
+            input(type='email', name='email' disabled id='email')
+            // unique email generated on change of first/last names/domain
+
+            label(for='m365License') Microsoft license:
+            select(type='select', name='m365License')    
+                option(value='' selected) None
+                //each license in licenses
+                //option(value=license.Service_Plan_Id) #{license.Product_Display_Name}
+
+            select(type='select', name='manager' required='true' )    
+                // search for users..
+
+            select(type='select', name='company' required='true' )    
+                each company in companies
+                    option(value=company._id) #{company.name} (#{company.code})
+
+            select(type='select', name='department' required='true')    
+                // generate on switch of company, departments tied to company
+            
+            button(type='submit') Submit
+
+    if errors
+        ul
+        for error in errors
+            li!= error.msg
+
+    script.
+        async function generateEmail(){
+            const givenName = document.getElementById('givenName').value;
+            const surname = document.getElementById('surname').value;
+            const domain = document.getElementById('domain').value;
+
+            if(!givenName || !surname || !domain){
+                document.getElementById('email').value = '';
+                return;
+            }
+
+            response = await fetch(`/users/generateEmail?givenName=${encodeURIComponent(givenName)}&surname=${encodeURIComponent(surname)}&domain=${encodeURIComponent(domain)}`);
+            if(response.ok){
+                response.text().then((val) => document.getElementById('email').value = val)
+            }
+        }
+
+        const mailGeneratingComponents = [
+            document.getElementById('givenName'),
+            document.getElementById('surname'),
+            document.getElementById('domain'),
+        ];
+
+        function debounce(func, timer, timeout){
+            clearTimeout(timer);
+            return setTimeout(func, timeout);
+        }
+
+        let debounceTimer;
+        for(component of mailGeneratingComponents){
+            component.addEventListener('input', () => {
+                debounceTimer = debounce(generateEmail, debounceTimer, 2000);
+            })
+        }

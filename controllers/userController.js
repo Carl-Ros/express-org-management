@@ -92,8 +92,9 @@ exports.user_search = asyncHandler(async (req, res) => {
 
 // Display user create form on GET.
 exports.user_create_get = asyncHandler(async (req, res) => {
-    res.send("NOT IMPLEMENTED: user create GET");
-});
+    const companies = await Company.find({ status: { $ne: CompanyStatus.DECOMISSIONED } }).exec();
+    res.render("forms/user_form", { title: "Create User", companies: companies});
+  });
 
 // Handle user create on POST.
 exports.user_create_post = asyncHandler(async (req, res) => {
@@ -125,4 +126,54 @@ exports.user_list = asyncHandler(async (req, res) => {
     res.render("user_list", {
         title: "Users", companies
     });
+});
+
+// Generate unique email
+exports.user_generate_email_get = asyncHandler(async (req, res) => {
+    let givenName = req.query.givenName;
+    let surname = req.query.surname;
+    let domain = req.query.domain;
+    
+    if(!givenName || !surname || !domain){
+        res.status(400).json({ error: 'Missing mandatory parameter' });
+        return;
+    }
+
+    const charConversionMap = new Map(
+        [
+            ['Å', 'AA'],
+            ['Ä', 'AE'],
+            ['Ö', 'OE'],
+            ['å', 'aa'],
+            ['ä', 'ae'],
+            ['ö', 'oe'],
+            [' ', '_'],
+            ['-', '_'],
+        ]
+    )
+
+    let generatedMailNickname = (givenName.trim() + '.' + surname.trim()).replace(/\s+/g, ' ') //remove repeated whitespace
+    
+
+    for(const [key, value] of charConversionMap){
+        generatedMailNickname = generatedMailNickname.replaceAll(key, value);
+    }
+
+    generatedMailNickname = generatedMailNickname.normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents 
+    .replace(/[^a-zA-Z0-9_/-@.]/g,'') // remove illegal email characters
+    
+
+    let suffix = "";
+    let unique = false;
+    while(!unique){
+        generatedMailNickname = (generatedMailNickname + suffix).toLowerCase();
+        const matches = await User.find({email: generatedMailNickname + '@' + domain});
+        console.log(matches)
+        if(matches.length === 0){
+            unique = true;
+        }
+        suffix += 1;    
+    }
+
+    res.send(generatedMailNickname + '@' + domain);
 });
