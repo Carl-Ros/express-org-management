@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/user");
-const { Company, Status: CompanyStatus } = require("../models/company")
+const { Company, Status: CompanyStatus } = require("../models/company");
+const { getLicenses } = require("../fetch_licenses");
 
 exports.user_get = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id).populate(["department", "directReports", "manager"]); // add geolocation
@@ -92,8 +93,18 @@ exports.user_search = asyncHandler(async (req, res) => {
 
 // Display user create form on GET.
 exports.user_create_get = asyncHandler(async (req, res) => {
-    const companies = await Company.find({ status: { $ne: CompanyStatus.DECOMISSIONED } }).exec();
-    res.render("forms/user_form", { title: "Create User", companies: companies});
+    const companies = await Company.find({ status: { $ne: CompanyStatus.DECOMISSIONED } }).populate('departments').exec();
+
+
+    const companyWithDepartment = companies.map(company => {
+        const departments = company.departments;
+        const companyObject = company.toObject();
+        companyObject.departments = departments;
+        return companyObject;
+    });
+    
+    const licenses = await getLicenses();
+    res.render("forms/user_form", { title: "Create User", companies: companyWithDepartment, licenses});
   });
 
 // Handle user create on POST.
