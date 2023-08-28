@@ -1,0 +1,19 @@
+extends ../layout
+
+block content
+    h1 #{title}
+    form(method='POST' action='')
+        div.input-form
+            input(type="checkbox" id="deleteConfirmed") 
+            label(for="deleteConfirmed") I understand that this action is irreversible, and will effective immediately delete the user.
+            input(type='hidden' name='userId' id='userId' required='true' value=user._id )
+            button(type="submit" disabled id="submitButton") Delete !{user.fullName} (!{user.email})
+            
+    script.
+        const confirmDeleteCheckbox = document.getElementById("deleteConfirmed");
+        const submitButton = document.getElementById("submitButton");
+
+        confirmDeleteCheckbox.addEventListener("change", function() {
+            submitButton.disabled = !this.checked;
+        })
+

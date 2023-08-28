@@ -2,7 +2,8 @@ extends layout
 
 block content
   h1= title
-
+  a.create-btn(href=user.url + "/update")|* 
+  | #[Strong Edit user]
   h2 Company
   if company 
     p Company : #{company.name} (#{company.code})
@@ -19,4 +20,6 @@ block content
       each directReport in user.directReports
         li
           a(href=directReport.url) #{directReport.fullName} (#{directReport.email})
+  a.delete-btn(href=user.url + "/delete")|-
+  | #[Strong Delete user]
 
