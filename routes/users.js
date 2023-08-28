@@ -23,8 +23,13 @@ router.get("/:id/update", user_controller.user_update_get);
 // POST request to update user.
 router.post("/:id/update", user_controller.user_update_post);
 
+// GET request for searching for users. NOTE This must come before route for id (i.e. display user).
+router.get("/search", user_controller.user_search);
+
+// Generate unique email
+router.get("/generateEmail", user_controller.user_generate_email_get)
+
 // GET request for one user.
 router.get("/:id", user_controller.user_get);
-
 
 module.exports = router;

@@ -5,16 +5,16 @@ block content
     form(method='POST' action='')
         div.input-form
             label(for='givenName') First name:
-            input(type='text', name='givenName' id='givenName')
+            input(type='text', name='givenName' id='givenName' value=(user === undefined ? '' : user.givenName))
 
             label(for='surname') Last name:
-            input(type='text', name='surname' id='surname')
+            input(type='text', name='surname' id='surname' value=(user === undefined ? '' : user.surname))
 
             label(for='emailDomain') Email domain:
             input(type='text' for='emailDomain' id='domain')
 
             label(for='email') Email: 
-            input(type='email', name='email' disabled id='email')
+            input(type='email', name='email' id='email' readonly)
 
             label(for='m365License') Microsoft license:
             select(type='select', name='m365License')    
@@ -24,13 +24,13 @@ block content
 
             div.query-container
                 label(for="userSearch") Manager:
-                input(type="text" id="userSearch" name="userSearch" placeholder="Enter manager name")
+                input(type="text" id="userSearch" name="userSearch" placeholder="Enter manager name" ) 
 
             select.hidden(id='results' size=10)
             div.hidden(id='pagination')
 
             label(for="company") Company:
-            select(type='select', name='company' id="company" required='true')    
+            select(type='select', name='company' id="company" required='true' )    
                 each company in companies
                     option(value=company._id) #{company.name} (#{company.code})
 
