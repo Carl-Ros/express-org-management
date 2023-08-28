@@ -11,12 +11,6 @@ router.get("/create", department_controller.department_create_get);
 // POST request for creating department.
 router.post("/create", department_controller.department_create_post);
 
-// GET request to delete department.
-router.get("/:id/delete", department_controller.department_delete_get);
-
-// POST request to delete department.
-router.post("/:id/delete", department_controller.department_delete_post);
-
 // GET request to update department.
 router.get("/:id/update", department_controller.department_update_get);
 

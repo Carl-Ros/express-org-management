@@ -29,18 +29,20 @@ block content
     });
     let map;
     let marker;
-    async function initMap() {
+
+    
+    async function initMap(latitude = 59.327, longitude = 18.067) {
       const { Map } = await google.maps.importLibrary("maps");
       map = new google.maps.Map(document.getElementById("map"), {
         zoom: 6,
-        center: { lat: 59.325, lng: 18.07 },
+        center: { lat: latitude, lng: longitude },
       });
 
       marker = new google.maps.Marker({
         map,
         draggable: true,
         animation: google.maps.Animation.DROP,
-        position: { lat: 59.327, lng: 18.067 },
+        position: { lat: latitude, lng: longitude },
       });
 
       marker.addListener("dragend", () => {
@@ -52,5 +54,6 @@ block content
         document.getElementById("longitudeInput").value = location.lng();
       } 
     }
-    
-    initMap();
+
+    const geolocation = !{JSON.stringify(geolocation || {})};
+    initMap(geolocation?.latitude && Number(geolocation.latitude), geolocation?.latitude && Number(geolocation.longitude));
