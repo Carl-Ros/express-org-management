@@ -29,6 +29,20 @@ DepartmentSchema.pre('save', async function(next) {
   next()
 });
 
+
+// Remove users references when closing
+DepartmentSchema.pre('save', async function(next) {
+  if (this.status === Status.CLOSED) {
+    const department = await this.populate("users");
+    console.log(department);
+    for(const user of department.users){
+      user.department = null;
+      user.save();
+    }
+  }
+  next()
+});
+
 // Virtual for Department's URL
 DepartmentSchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object

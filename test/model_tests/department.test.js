@@ -1,5 +1,6 @@
 const { Company, Status: CompanyStatus } = require("../../models/company");
-const { Department } = require("../../models/department");
+const { Department, Status: DepartmentStatus } = require("../../models/department");
+const User = require("../../models/user");
 
 const assert = require("assert");
 const { describe, it, afterEach } = require("node:test");
@@ -26,9 +27,6 @@ function clearCleanup(){
 }
 
 // TODO:
-// geolocation, user 
-// should return cities from 2 geolocations
-// should return 2 users
 // department.status -> closed should remove department from all associated users
 
 describe("Department", () => {
@@ -73,5 +71,40 @@ describe("Department", () => {
    }
   });
 
+  it("should remove users from the department on close status", async () => {
+    const newCompany = await createCompany();
+    addToCleanup(Company, newCompany._id);
+
+    const departmentData = {
+      name: "Test Department",
+      company: newCompany._id,
+    };
+
+    const newDepartment = new Department(departmentData);
+    const savedDepartment = await newDepartment.save();
+    addToCleanup(Department, savedDepartment._id);
+
+    const userData = {
+      givenName: "Test",
+      surname: "User",
+      email: "test.user@example.com",
+      department: savedDepartment,
+    } 
+
+    const newUser = new User(userData);
+    const savedUser = await newUser.save();
+    addToCleanup(User, savedUser._id);
+
+    console.log(`savedUser: ${savedUser.department._id} --- savedDepartment ${savedDepartment._id}`)
+    assert.strictEqual(savedUser.department._id, savedDepartment._id);
+
+    savedDepartment.status = DepartmentStatus.CLOSED;
+    await savedDepartment.save();
+    
+    const changedUser = await User.findById(savedUser._id);
+    console.log(changedUser)
+    assert.strictEqual(changedUser.department, null);
+
+   });
 
 });

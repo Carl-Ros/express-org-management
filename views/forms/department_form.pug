@@ -13,6 +13,10 @@ block content
       #map
       input(type="hidden" id="latitudeInput" name="latitude")
       input(type="hidden" id="longitudeInput" name="longitude")
+      if statuses
+        select(type="select" id="status" name="status")
+          each status in statuses
+            option(value=status) #{status}
       button(type='submit') Submit
       
   if errors
@@ -52,7 +56,12 @@ block content
       function updateLocationFields(location) {
         document.getElementById("latitudeInput").value = location.lat();
         document.getElementById("longitudeInput").value = location.lng();
+        console.log(`Set latlng to ${location.lat()}, ${location.lng()}`)
       } 
+      updateLocationFields({
+        lat: () => latitude,
+        lng: () => longitude,
+      });
     }
 
     const geolocation = !{JSON.stringify(geolocation || {})};

@@ -47,7 +47,12 @@ function department_post(type) {
     asyncHandler(async (req, res) => {
       const errors = validationResult(req);
       const location = new Geolocation({ latitude: req.body.latitude, longitude: req.body.longitude });
-      const department = new Department({ name: req.body.name, company: req.body.company});
+      const department = new Department({ 
+        name: req.body.name,
+        company: req.body.company,
+        geolocation: location,
+        status: req.body.status ? req.body.status : DepartmentStatus.ACTIVE
+      });
       const companies = await Company.find({ status: { $ne: CompanyStatus.DECOMISSIONED } }).exec();
 
       if (type === postTypes.UPDATE) {
@@ -58,6 +63,7 @@ function department_post(type) {
         department: department,
         companies: companies,
         errors: errors.array(),
+        statuses: [...Object.values(DepartmentStatus)]
       }
 
       if (type === postTypes.CREATE) {
@@ -65,7 +71,7 @@ function department_post(type) {
       } else if (type === postTypes.UPDATE) {
         formData.title = "Update Department";
       }
-
+      
       if (!errors.isEmpty()) {
         res.render("forms/department_form", formData);
         return;
@@ -74,7 +80,7 @@ function department_post(type) {
         if (type === postTypes.CREATE) {
           await department.save();
         } else if (type === postTypes.UPDATE) {
-          await Department.findByIdAndUpdate(req.params.id, department, {});
+          await Department.findByIdAndUpdate(req.params.id, department, { runValidators: true });
         }
 
         res.redirect(department.url);
@@ -96,7 +102,14 @@ exports.department_update_get = asyncHandler(async (req, res, next) => {
       err.status = 404;
       return next(err);
   }
-  res.render("forms/department_form", { title: "Update Department", department: department, geolocation: geolocation, companies: companies, googleMapsKey: process.env.GOOGLE_MAPS_API_KEY });
+  res.render("forms/department_form", { 
+    title: "Update Department",
+    department: department,
+    geolocation: geolocation,
+    companies: companies,
+    statuses: [...Object.values(DepartmentStatus)],
+    googleMapsKey: process.env.GOOGLE_MAPS_API_KEY 
+  });
 });
 
 // Handle department update on POST.
