@@ -2,6 +2,7 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
   display:grid;
   min-height:100%;
+  width:100%;
   grid-template-rows: repeat(3,auto); 
   grid-template-columns: auto; 
   grid-template-areas: 
@@ -28,6 +29,7 @@ main {
 	grid-area:main;
   padding: 24px;
 	margin:auto;
+  min-width:450px;
 }
 
 main > ul {
@@ -57,21 +59,45 @@ a.create-btn {
   color:lime;
 }
 
-div.input-form {
-  max-width: 80%;
-  margin:auto;
+a.delete-btn {
+  font-size: 24px;
+  color:crimson;
 }
 
-div.input-form > * {
-  margin-right: 25%;
+#map{
+  min-height:250px;
+  width:100%;
 }
 
-div.input-form > button {
-  margin-top: 24px;
-}
-
-div.input-form > label {
+div.input-form > :not(label) {
   display:block;
   min-width:100%;
-  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.hidden {
+  display:none !important;
+}
+
+#results {
+  border-left: 1px solid #ccc;
+  overflow: auto;
+  margin-top: -24px;
+}
+
+#pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.query-container > :not(label){
+  width:100%;
+}
+
+.page-link {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  margin: 0 5px;
 }
