@@ -4,7 +4,7 @@ block content
   h1= title
   p Welcome to #[em Org management portal], a basic Express website inspired by the express tutorial on the Mozilla Developer Network.
 
-  # display flex box - 3 items, images of company, department, user
+  // display flex box - 3 items, images of company, department, user
   ul
     li #[Strong Companies:] !{company_count}
     li #[Strong Departments:] !{department_count}
@@ -18,3 +18,19 @@ block content
     ul
       each val in departments_with_decomissioned_company
         a(href='/departments/' + val)
+
+    h2 Organizational views
+      button(type="button" onclick="toggleUserTree()") View organizational tree
+
+    ul(id="userContainer").hidden
+      each node in userTreeNodes
+        li(style=`margin-left: ${node.depth * 24}px`)
+          a(href=`/users/${node.value}`) #{node.display}
+      else
+        li There are no users.
+
+    script.
+      function toggleUserTree() {
+        const treeView = document.getElementById('userContainer');
+        treeView.classList.toggle('hidden');
+      }
