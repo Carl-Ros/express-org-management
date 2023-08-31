@@ -5,8 +5,8 @@ const { getLicenses } = require("../fetch_licenses");
 const { body, validationResult } = require("express-validator");
 
 exports.user_get = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.id).populate(["department", "directReports", "manager"]); // add geolocation
-    res.render("user_get", { title: user.fullName, user: user, company: await user.company });
+    const user = await User.findById(req.params.id).populate(["department", "directReports", "manager", "company"]);
+    res.render("user_get", { title: user.fullName, user: user});
 });
 
 exports.user_search = asyncHandler(async (req, res) => {
@@ -151,6 +151,10 @@ function user_post(type) {
 
             if (req.body.m365License && !req.body.m365License.match(/None/i)) {
                 newUser.m365License = req.body.m365License;
+            }
+
+            if (type === postTypes.UPDATE) {
+                newUser._id = req.params.id;
             }
 
             const user = new User(newUser);
