@@ -2,7 +2,8 @@ extends layout
 
 block content
   h1= title
-
+  a.create-btn(href=company.url + "/update")|* 
+  | #[Strong Edit Company]
   h2 Children
   ul
     each child in company.children
@@ -13,6 +14,7 @@ block content
       li Company has no children.
 
   h2 Departments
+  #map
   ul
     each department in company.departments
       li
@@ -25,3 +27,39 @@ block content
     each node in treeNodes
       li(style=`margin-left: ${node.depth * 24}px`)
         a(href=`/users/${node.value}`) #{node.display}
+
+  - if (locations.length > 0)
+    script.
+      const locations = !{JSON.stringify(locations)};
+      (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+        key: "#{googleMapsKey}",
+        v: "weekly",
+        // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
+        // Add other bootstrap parameters as needed, using camel case.
+      });
+      let map;
+      let marker;
+      async function initMap() {
+        const { Map } = await google.maps.importLibrary("maps");
+
+
+        const meanLat = locations.reduce( (prev, { latitude }) => prev + latitude, 0) / locations.length;
+        const meanLng = locations.reduce( (prev, { longitude }) => prev + longitude, 0) / locations.length;
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 4,
+          center: { lat: meanLat, lng: meanLng }
+        });
+
+        for(const location of locations){
+          marker = new google.maps.Marker({
+            map,
+            position: { lat: location.latitude, lng: location.longitude },
+          });
+        }
+      }
+      initMap();
+  - else
+    script.
+      const mapContainer = document.getElementById("map");
+      mapContainer.classList.add("hidden");

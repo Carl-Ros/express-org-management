@@ -5,16 +5,20 @@ block content
     form(method='POST' action='')
         div.input-form
             label(for='name') Name:
-            input(type='text', name='name')
+            input(type='text', name='name' value=(company.name ? company.name : ''))
 
             label(for='code') Code: 
-            input(type='text', name='code')
+            input(type='text', name='code' value=(company.name ? company.code : ''))
 
             label(for='company') Parent company:
             select(type='select', name='parent')    
                 option(value='' selected) None
                 each company in companies
                     option(value=company._id) #{company.name} (#{company.code})
+            if statuses
+                select(type="select" id="status" name="status")
+                    each status in statuses
+                        option(value=status) #{status}
             button(type='submit') Submit
 
     if errors
