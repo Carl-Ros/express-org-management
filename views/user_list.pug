@@ -2,6 +2,9 @@ extends layout
 
 block content
   h1= title
+  div.border
+    a.create-btn(href='/users/create')|+ 
+    | #[Strong Create new user]
   div.queryFilterContainer
     label(for="isManagerCheckbox") Manager
     input(type="checkbox" id="isManagerCheckbox" name="categories" value="isManager")

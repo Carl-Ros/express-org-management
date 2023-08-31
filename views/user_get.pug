@@ -5,8 +5,8 @@ block content
   a.create-btn(href=user.url + "/update")|* 
   | #[Strong Edit user]
   h2 Company
-  if company 
-    p Company : #{company.name} (#{company.code})
+  if user.company 
+    p Company : #{user.company.name} (#{user.company.code})
   else
     p Not assigned to a company.
 
