@@ -1,5 +1,6 @@
 const {Department, Status: DepartmentStatus} = require("../../models/department");
 const {Company, Status: CompanyStatus} = require("../../models/company");
+const User = require("../../models/user")
 
 const assert = require("assert");
 const {describe, it, afterEach} = require("node:test");
