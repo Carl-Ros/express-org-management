@@ -26,9 +26,6 @@ function clearCleanup(){
   cleanupEntries.splice(0, cleanupEntries.length)
 }
 
-// TODO:
-// department.status -> closed should remove department from all associated users
-
 describe("Department", () => {
 
   afterEach(async () => {
@@ -94,17 +91,13 @@ describe("Department", () => {
     const newUser = new User(userData);
     const savedUser = await newUser.save();
     addToCleanup(User, savedUser._id);
-
-    console.log(`savedUser: ${savedUser.department._id} --- savedDepartment ${savedDepartment._id}`)
     assert.strictEqual(savedUser.department._id, savedDepartment._id);
 
     savedDepartment.status = DepartmentStatus.CLOSED;
     await savedDepartment.save();
     
     const changedUser = await User.findById(savedUser._id);
-    console.log(changedUser)
     assert.strictEqual(changedUser.department, null);
-
    });
 
 });
